@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <signal.h>
+#include <dlfcn.h>
 
 #include <string>
 #include <string_view>
@@ -5424,8 +5425,7 @@ int SciTEGTK::PollTool(SciTEGTK *scitew) {
 	return TRUE;
 }
 
-extern "C"
-bool InitializeScite(MultiplexExtension * extender,
+typedef bool (*func_InitializeScite)(MultiplexExtension * extender,
                      SciTEBase * scite);
 
 int main(int argc, char *argv[]) {
@@ -5466,8 +5466,12 @@ int main(int argc, char *argv[]) {
 	SciTEGTK scite(extender);
 	scite.SetStartupTime(timestamp);
 
-    if (!InitializeScite(&multiExtender, &scite)) {
-        exit(4);
+    func_InitializeScite pfn = (func_InitializeScite)dlsym(RTLD_DEFAULT, "InitializeScite");
+
+    if (pfn) {
+        if (!pfn(&multiExtender, &scite)) {
+            exit(4);
+        }
     }
 
 	scite.Run(argc, argv);
