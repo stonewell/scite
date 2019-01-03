@@ -5424,6 +5424,10 @@ int SciTEGTK::PollTool(SciTEGTK *scitew) {
 	return TRUE;
 }
 
+extern "C"
+bool InitializeScite(MultiplexExtension * extender,
+                     SciTEBase * scite);
+
 int main(int argc, char *argv[]) {
 #ifdef NO_EXTENSIONS
 	Extension *extender = 0;
@@ -5461,6 +5465,11 @@ int main(int argc, char *argv[]) {
 
 	SciTEGTK scite(extender);
 	scite.SetStartupTime(timestamp);
+
+    if (!InitializeScite(&multiExtender, &scite)) {
+        exit(4);
+    }
+
 	scite.Run(argc, argv);
 	scite.Finalise();
 
